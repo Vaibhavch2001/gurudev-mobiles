@@ -210,7 +210,7 @@ exports.stockEntry = async (req, res) => {
 
 exports.deleteSales = async (req, res) => {
   try {
-    let sale = Sale.findAll({
+    let sale = await Sale.findAll({
       where: {
         id: req.body.id,
       },
@@ -244,7 +244,7 @@ exports.deleteSales = async (req, res) => {
 
 exports.deleteStockEntry = async (req, res) => {
   try {
-    let purchase = Purchase.findAll({
+    let purchase = await Purchase.findAll({
       where: {
         id: req.body.id,
       },
