@@ -1,5 +1,5 @@
 const { Product, Inventory, Sale, Purchase } = require("./models/index");
-
+const { notifyChange } = require("./helper");
 exports.getInventory = async (req, res) => {
   try {
     const inventory = await Inventory.findAll({
@@ -62,6 +62,9 @@ exports.addProduct = async (req, res) => {
       isValid: 1,
     });
     await newProduct.save();
+    notifyChange(
+      `New Product created - ${newProduct.brand} ${newProduct.name}, ${newProduct.size}, ${newProduct.color}`
+    );
     res.status(200).send(newProduct);
   } catch (e) {
     console.log(e);
@@ -110,6 +113,16 @@ exports.editProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
   try {
+    const inventory = await Inventory.findAll({
+      where: {
+        ProductId: req.body.productId,
+      },
+    });
+    if (inventory.length !== 0 && inventory[0].quantity !== 0) {
+      notifyChange(`Attempt made to delete model which had stock`);
+      res.status(500).send("Deletion unsuccessful");
+      return;
+    }
     await Inventory.destroy({
       where: {
         ProductId: req.body.productId,
@@ -165,6 +178,7 @@ exports.salesEntry = async (req, res) => {
         },
       }
     );
+    notifyChange(`New Product sold. Bill amount - Rs${req.body.amount}`);
     res.status(200).send(newSale);
   } catch (e) {
     console.log(e);
@@ -235,6 +249,7 @@ exports.deleteSales = async (req, res) => {
     await Sale.destroy({
       where: { id: req.body.id },
     });
+    notifyChange(`Deleted a Product sale`);
     res.status(200).send();
   } catch (e) {
     console.log(e);
@@ -272,6 +287,7 @@ exports.deleteStockEntry = async (req, res) => {
     await Purchase.destroy({
       where: { id: req.body.id },
     });
+    notifyChange(`Deleted a Purchase`);
     res.status(200).send();
   } catch (e) {
     console.log(e);
