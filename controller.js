@@ -136,7 +136,7 @@ exports.salesEntry = async (req, res) => {
         ProductId: req.body.productId,
       },
     });
-    if (inventory.length == 0) {
+    if (inventory.length === 0) {
       res.status(500).send("Sale unsuccessful");
       return;
     }
@@ -178,7 +178,7 @@ exports.stockEntry = async (req, res) => {
         ProductId: req.body.productId,
       },
     });
-    if (inventory.length == 0) {
+    if (inventory.length === 0) {
       inventory = await Inventory.create({
         quantity: req.body.quantity,
         ProductId: req.body.productId,
@@ -220,7 +220,7 @@ exports.deleteSales = async (req, res) => {
         ProductId: sale[0].ProductId,
       },
     });
-    if (inventory.length == 0) {
+    if (inventory.length === 0) {
       res.status(500).send("Exception");
       return;
     }
@@ -254,7 +254,10 @@ exports.deleteStockEntry = async (req, res) => {
         ProductId: purchase[0].ProductId,
       },
     });
-    if (inventory.length == 0 || inventory[0].quantity < purchase[0].quantity) {
+    if (
+      inventory.length === 0 ||
+      inventory[0].quantity < purchase[0].quantity
+    ) {
       res.status(500).send("Exception");
       return;
     }
