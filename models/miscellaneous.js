@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
-      acccessories: {
+      accessories: {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
