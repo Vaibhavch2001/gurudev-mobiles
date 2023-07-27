@@ -35,9 +35,13 @@ app.get("/products", controller.getAllValidProducts);
 
 app.post("/sales", controller.getSales);
 
+app.post("/miscellaneous", controller.getMiscSales);
+
 app.post("/purchases", controller.getPurchases);
 
 app.post("/sales-entry", controller.salesEntry);
+
+app.post("/misc-sales-entry", controller.addMiscSales);
 
 app.post("/stock-entry", controller.stockEntry);
 
@@ -50,6 +54,8 @@ app.post("/edit-product", controller.editProduct);
 app.post("/delete-sale-entry", controller.deleteSales);
 
 app.post("/delete-stock-entry", controller.deleteStockEntry);
+
+app.post("/statistics", controller.getStats);
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

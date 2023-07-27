@@ -1,4 +1,10 @@
-const { Product, Inventory, Sale, Purchase } = require("./models/index");
+const {
+  Product,
+  Inventory,
+  Sale,
+  Purchase,
+  Miscellaneous,
+} = require("./models/index");
 const { notifyChange } = require("./helper");
 exports.getInventory = async (req, res) => {
   try {
@@ -33,6 +39,19 @@ exports.getSales = async (req, res) => {
       include: Product,
     });
     res.status(200).send(sales);
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e);
+  }
+};
+exports.getMiscSales = async (req, res) => {
+  try {
+    const miscSales = await Miscellaneous.findAll({
+      where: {
+        date: req.body.date,
+      },
+    });
+    res.status(200).send(miscSales);
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
@@ -74,15 +93,19 @@ exports.addProduct = async (req, res) => {
 
 exports.addMiscSales = async (req, res) => {
   try {
-    // const newProduct = await Product.create({
-    //   name: req.body.name,
-    //   brand: req.body.brand,
-    //   color: req.body.color,
-    //   size: req.body.size,
-    //   isValid: 1,
-    // });
-    // newProduct.save();
-    res.status(200).send(newProduct);
+    await Miscellaneous.destroy({
+      where: {
+        date: req.body.date,
+      },
+    });
+    const miscScales = await Miscellaneous.create({
+      recharge: req.body.recharge,
+      repairing: req.body.repairing,
+      accessories: req.body.accessories,
+      date: req.body.date,
+    });
+    await miscScales.save();
+    res.status(200).send(miscScales);
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
