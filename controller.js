@@ -201,7 +201,14 @@ exports.salesEntry = async (req, res) => {
         },
       }
     );
-    notifyChange(`New Product sold. Bill amount - Rs${req.body.amount}`);
+    const product = await Product.findAll({
+      where: {
+        id: req.body.productId,
+      },
+    });
+    notifyChange(
+      `New Product sold. Bill amount - Rs ${req.body.amount}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
+    );
     res.status(200).send(newSale);
   } catch (e) {
     console.log(e);
@@ -272,7 +279,14 @@ exports.deleteSales = async (req, res) => {
     await Sale.destroy({
       where: { id: req.body.id },
     });
-    notifyChange(`Deleted a Product sale`);
+    const product = await Product.findAll({
+      where: {
+        id: sale[0].ProductId,
+      },
+    });
+    notifyChange(
+      `Deleted a sale entry. Please check and verify. Sale amount - Rs ${sale[0].amount}, Sale date - ${sale[0].date}, Product - ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
+    );
     res.status(200).send();
   } catch (e) {
     console.log(e);
@@ -307,10 +321,17 @@ exports.deleteStockEntry = async (req, res) => {
         },
       }
     );
+    const product = await Product.findAll({
+      where: {
+        id: purchase[0].ProductId,
+      },
+    });
     await Purchase.destroy({
       where: { id: req.body.id },
     });
-    notifyChange(`Deleted a Purchase`);
+    notifyChange(
+      `Deleted a Purchase Order item. Please verify if correct. Purchase quantity - ${purchase[0].quantity}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
+    );
     res.status(200).send();
   } catch (e) {
     console.log(e);
