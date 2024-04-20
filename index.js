@@ -57,7 +57,10 @@ app.post("/delete-stock-entry", controller.deleteStockEntry);
 
 app.post("/statistics", controller.getStats);
 
+// app.post("/bill-entry", )
+
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });

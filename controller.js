@@ -6,6 +6,7 @@ const {
   Miscellaneous,
 } = require("./models/index");
 const { notifyChange } = require("./helper");
+
 exports.getInventory = async (req, res) => {
   try {
     const inventory = await Inventory.findAll({
@@ -206,10 +207,20 @@ exports.salesEntry = async (req, res) => {
         id: req.body.productId,
       },
     });
+    const billNumber = await BillCount.findAll();
+
+    await BillCount.update(
+      { count: billNumber[0].count + 1 },
+      {
+        where: {
+          id: billNumber[0].id,
+        },
+      }
+    );
     notifyChange(
       `New Product sold. Bill amount - Rs ${req.body.amount}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
     );
-    res.status(200).send(newSale);
+    res.status(200).send({ ...newSale, billNum: billNumber[0].count });
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
