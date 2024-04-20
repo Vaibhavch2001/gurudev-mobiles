@@ -57,7 +57,7 @@ app.post("/delete-stock-entry", controller.deleteStockEntry);
 
 app.post("/statistics", controller.getStats);
 
-// app.post("/bill-entry", )
+app.post("/bill-entry", controller.enterBill);
 
 const PORT = process.env.PORT || 8080;
 

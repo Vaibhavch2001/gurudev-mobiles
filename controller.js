@@ -4,6 +4,8 @@ const {
   Sale,
   Purchase,
   Miscellaneous,
+  BillCount,
+  Invoice,
 } = require("./models/index");
 const { notifyChange } = require("./helper");
 
@@ -220,6 +222,7 @@ exports.salesEntry = async (req, res) => {
     notifyChange(
       `New Product sold. Bill amount - Rs ${req.body.amount}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
     );
+    console.log("Hi", { ...newSale, billNum: billNumber[0].count });
     res.status(200).send({ ...newSale, billNum: billNumber[0].count });
   } catch (e) {
     console.log(e);
@@ -344,6 +347,30 @@ exports.deleteStockEntry = async (req, res) => {
       `Deleted a Purchase Order item. Please verify if correct. Purchase quantity - ${purchase[0].quantity}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
     );
     res.status(200).send();
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e);
+  }
+};
+
+exports.enterBill = async (req, res) => {
+  try {
+    console.log("Hi");
+    const newInvoice = await Invoice.create({
+      billNumber: req.body.billNumber,
+      url: req.body.url,
+    });
+    await newInvoice.save();
+    await Sale.update(
+      { InvoiceId: newInvoice.id },
+      {
+        where: {
+          id: req.body.saleId,
+        },
+      }
+    );
+    notifyChange(`Bill for previous sale - ${req.body.url}`);
+    res.status(200).send(newInvoice);
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
