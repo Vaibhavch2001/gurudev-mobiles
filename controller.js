@@ -39,7 +39,7 @@ exports.getSales = async (req, res) => {
       where: {
         date: req.body.date,
       },
-      include: Product,
+      include: [Product, Invoice],
     });
     res.status(200).send(sales);
   } catch (e) {
