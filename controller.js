@@ -6,6 +6,7 @@ const {
   Miscellaneous,
   BillCount,
   Invoice,
+  StockReturn,
 } = require("./models/index");
 const { notifyChange } = require("./helper");
 
@@ -146,7 +147,9 @@ exports.deleteProduct = async (req, res) => {
     });
     if (inventory.length !== 0 && inventory[0].quantity !== 0) {
       notifyChange(`Attempt made to delete model which had stock`);
-      res.status(500).send("Deletion unsuccessful");
+      res
+        .status(500)
+        .send("Deletion unsuccessful since this product has stock.");
       return;
     }
     await Inventory.destroy({
@@ -229,6 +232,7 @@ exports.salesEntry = async (req, res) => {
     res.status(500).send(e);
   }
 };
+
 exports.stockEntry = async (req, res) => {
   try {
     let inventory = await Inventory.findAll({
@@ -236,15 +240,32 @@ exports.stockEntry = async (req, res) => {
         ProductId: req.body.productId,
       },
     });
+
+    const newPurchase = await Purchase.create({
+      date: req.body.date,
+      quantity: req.body.quantity,
+      costprice: req.body.costPrice,
+      ProductId: req.body.productId,
+    });
+    const product = await Product.findAll({
+      where: {
+        id: req.body.productId,
+      },
+    });
+    await newPurchase.save();
     if (inventory.length === 0) {
       inventory = await Inventory.create({
         quantity: req.body.quantity,
         ProductId: req.body.productId,
+        costprice: req.body.costPrice,
       });
       await inventory.save();
     } else {
       await Inventory.update(
-        { quantity: inventory[0].quantity + req.body.quantity },
+        {
+          quantity: inventory[0].quantity + req.body.quantity,
+          costprice: req.body.costPrice,
+        },
         {
           where: {
             id: inventory[0].id,
@@ -252,13 +273,9 @@ exports.stockEntry = async (req, res) => {
         }
       );
     }
-
-    const newPurchase = await Purchase.create({
-      date: req.body.date,
-      quantity: req.body.quantity,
-      ProductId: req.body.productId,
-    });
-    await newPurchase.save();
+    notifyChange(
+      `Purchase Entry Added. Purchase quantity - ${req.body.quantity}, amount - ${req.body.costPrice}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
+    );
     res.status(200).send(newPurchase);
   } catch (e) {
     console.log(e);
@@ -421,6 +438,56 @@ exports.getStats = async (req, res) => {
       purcaseQuantity: purchaseQuantity,
       saleAmount: saleAmount,
     });
+  } catch (e) {
+    console.log(e);
+    res.status(500).send(e);
+  }
+};
+
+exports.stockReturn = async (req, res) => {
+  try {
+    const inventory = await Inventory.findAll({
+      where: {
+        ProductId: req.body.productId,
+      },
+    });
+    if (inventory.length === 0) {
+      res.status(500).send("Unable to return stock");
+      return;
+    }
+
+    if (inventory[0].quantity < req.body.quantity) {
+      res.status(500).send("Return quantity > inventory");
+      return;
+    }
+
+    const returnItem = await StockReturn.create({
+      date: req.body.date,
+      quantity: req.body.quantity,
+      ProductId: req.body.productId,
+    });
+
+    await returnItem.save();
+
+    const newQuantity = inventory[0].quantity - req.body.quantity;
+
+    await Inventory.update(
+      { quantity: newQuantity },
+      {
+        where: {
+          id: inventory[0].id,
+        },
+      }
+    );
+    const product = await Product.findAll({
+      where: {
+        id: req.body.productId,
+      },
+    });
+    notifyChange(
+      `Product returned to Company. Quantity - ${req.body.quantity}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
+    );
+    res.status(200).send({});
   } catch (e) {
     console.log(e);
     res.status(500).send(e);

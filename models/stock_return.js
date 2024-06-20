@@ -1,13 +1,12 @@
 const { Model } = require("sequelize-yugabytedb");
 
 module.exports = (sequelize, DataTypes) => {
-  class Inventory extends Model {
+  class StockReturn extends Model {
     static associate(models) {
-      Inventory.belongsTo(models.Product);
-      // define association here
+      StockReturn.belongsTo(models.Product);
     }
   }
-  Inventory.init(
+  StockReturn.init(
     {
       id: {
         allowNull: false,
@@ -15,19 +14,19 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      quantity: {
+      date: {
         allowNull: false,
-        type: DataTypes.INTEGER,
+        type: DataTypes.DATEONLY,
       },
-      costprice: {
+      quantity: {
         allowNull: false,
         type: DataTypes.INTEGER,
       },
     },
     {
       sequelize,
-      modelName: "Inventory",
+      modelName: "StockReturn",
     }
   );
-  return Inventory;
+  return StockReturn;
 };

@@ -59,6 +59,8 @@ app.post("/statistics", controller.getStats);
 
 app.post("/bill-entry", controller.enterBill);
 
+app.post("/stock-return", controller.stockReturn);
+
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
