@@ -190,11 +190,29 @@ exports.salesEntry = async (req, res) => {
 
     const newQuantity = inventory[0].quantity - req.body.quantity;
 
+    const billNumbers = await BillCount.findAll({ order: [["count", "ASC"]] });
+    console.log(billNumbers);
+    if (billNumbers.length == 1) {
+      await BillCount.update(
+        { count: billNumbers[0].count + 1 },
+        {
+          where: {
+            id: billNumbers[0].id,
+          },
+        }
+      );
+    } else {
+      await BillCount.destroy({
+        where: { id: billNumbers[0].id },
+      });
+    }
+
     const newSale = await Sale.create({
       date: req.body.date,
       quantity: req.body.quantity,
       amount: req.body.amount,
       ProductId: req.body.productId,
+      billnumber: billNumbers[0].count,
     });
 
     await newSale.save();
@@ -212,21 +230,11 @@ exports.salesEntry = async (req, res) => {
         id: req.body.productId,
       },
     });
-    const billNumber = await BillCount.findAll();
-
-    await BillCount.update(
-      { count: billNumber[0].count + 1 },
-      {
-        where: {
-          id: billNumber[0].id,
-        },
-      }
-    );
     notifyChange(
       `New Product sold. Bill amount - Rs ${req.body.amount}. Product -  ${product[0].brand} ${product[0].name}, ${product[0].size}, ${product[0].color}`
     );
-    console.log("Hi", { ...newSale, billNum: billNumber[0].count });
-    res.status(200).send({ ...newSale, billNum: billNumber[0].count });
+    console.log("Hi", { ...newSale, billNum: billNumbers[0].count });
+    res.status(200).send({ ...newSale, billNum: billNumbers[0].count });
   } catch (e) {
     console.log(e);
     res.status(500).send(e);
@@ -299,6 +307,12 @@ exports.deleteSales = async (req, res) => {
       res.status(500).send("Exception");
       return;
     }
+    if (sale[0].billnumber) {
+      const newBillCount = await BillCount.create({
+        count: sale[0].billnumber,
+      });
+      await newBillCount.save();
+    }
     await Inventory.update(
       { quantity: inventory[0].quantity + sale[0].quantity },
       {
@@ -309,6 +323,9 @@ exports.deleteSales = async (req, res) => {
     );
     await Sale.destroy({
       where: { id: req.body.id },
+    });
+    await Invoice.destroy({
+      where: { id: sale[0].InvoiceId },
     });
     const product = await Product.findAll({
       where: {
@@ -372,7 +389,6 @@ exports.deleteStockEntry = async (req, res) => {
 
 exports.enterBill = async (req, res) => {
   try {
-    console.log("Hi");
     const newInvoice = await Invoice.create({
       billNumber: req.body.billNumber,
       url: req.body.url,
