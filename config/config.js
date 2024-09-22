@@ -9,7 +9,7 @@ module.exports = {
     dialect: process.env.DIALECT,
     dialectOptions: {
       ssl: {
-        rejectUnauthorized: true,
+        rejectUnauthorized: false,
         ca: fs.readFileSync("root.crt").toString(),
       },
     },
